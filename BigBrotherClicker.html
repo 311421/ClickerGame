@@ -201,7 +201,7 @@
 <body>
 
     <!-- Рекламный баннер -->
-    <div class="ad-banner">Здесь могла бы быть ваша реклама. Большой Брат не одобряет ее отстутствие.</div>
+    <div class="ad-banner">Здесь могла бы быть ваша реклама. Большой Брат не одобряет ее отсутствие.</div>
 
     <!-- Панель монетизации (Заглушки) -->
     <div class="monetization-bar">
@@ -218,7 +218,7 @@
     <button class="main-btn" onclick="clickManual()">ВЫЯВИТЬ ДИССИДЕНТА<br><span id="clickPowerText">(Мощь: 1)</span></button>
 
     <div class="sections-container">
-        <!-- Доктрины Партии (Клики) -->
+        <!-- Доктрины Партии (Клики и Уникальные улучшение) -->
         <div class="section" id="clickSection" style="display: none;">
             <div class="section-title title-click">--- ДОКТРИНЫ ПАРТИИ ---</div>
             <div id="clickUpgradesContainer"></div>
@@ -294,7 +294,11 @@
             event_cps_bonus: 0,
             click_power: 1,
             current_stage: 0,
-            vip_active: false
+            vip_active: false,
+            // Новые модификаторы
+            click_multiplier: 1, // Мультипликатор кликов
+            discount: 0,         // Скидка на покупку инструментов (в процентах)
+            game_speed: 1        // Ускорение игры (множитель всего CPS)
         };
 
         const upgrades = [
@@ -305,11 +309,15 @@
             {id: "thought", name: "Полиция мыслей", base_cost: 10000, cps: 400, count: 0, icon: "assets/5.png"}
         ];
 
+        // Расширенный список доктрин (включая мультипликаторы, скидки, ускорение и скип времени)
         const clickUpgrades = [
-            {id: "c_0", name: "Пятиминутки ненависти", desc: "+2 к силе клика", cost: 150, bonus: 2, req_stage: 1, purchased: false, icon: "assets/6.png"},
-            {id: "c_1", name: "Внедрение Новояза", desc: "+5 к силе клика", cost: 1500, bonus: 5, req_stage: 2, purchased: false, icon: "assets/7.png"},
-            {id: "c_2", name: "Курсы Двоемыслия", desc: "+25 к силе клика", cost: 15000, bonus: 25, req_stage: 3, purchased: false, icon: "assets/8.png"},
-            {id: "c_3", name: "Комната 101", desc: "+100 к силе клика", cost: 75000, bonus: 100, req_stage: 4, purchased: false, icon: "assets/9.png"}
+            {id: "c_0", name: "Пятиминутки ненависти", desc: "+2 к силе клика", cost: 150, type: "flat", value: 2, req_stage: 1, purchased: false, icon: "assets/6.png"},
+            {id: "c_1", name: "Внедрение Новояза", desc: "Увеличивает силу кликов в 2 раза (x2)", cost: 800, type: "mult", value: 2, req_stage: 1, purchased: false, icon: "assets/7.png"},
+            {id: "c_2", name: "Эффективность МинПравды", desc: "Скидка 15% на все инструменты контроля", cost: 2500, type: "discount", value: 15, req_stage: 2, purchased: false, icon: "assets/8.png"},
+            {id: "c_3", name: "Курсы Двоемыслия", desc: "+25 к силе клика", cost: 15000, type: "flat", value: 25, req_stage: 3, purchased: false, icon: "assets/8.png"},
+            {id: "c_4", name: "Форсирование пятилетки", desc: "Ускоряет всю игру в 1.5 раза (+50% CPS)", cost: 35000, type: "speed", value: 1.5, req_stage: 3, purchased: false},
+            {id: "c_5", name: "Машина времени Океании", desc: "Мгновенно пропускает 2 часа пассивного дохода", cost: 60000, type: "time_skip", value: 7200, req_stage: 4, purchased: false},
+            {id: "c_6", name: "Комната 101", desc: "+100 к силе клика", cost: 75000, type: "flat", value: 100, req_stage: 4, purchased: false}
         ];
 
         const stages = [
@@ -472,12 +480,16 @@
         }
 
         function getUpgradeCost(upg) {
-            return Math.floor(upg.base_cost * Math.pow(1.15, upg.count));
+            let rawCost = upg.base_cost * Math.pow(1.15, upg.count);
+            // Применяем скидку от улучшений
+            let discountedCost = rawCost * (1 - state.discount / 100);
+            return Math.floor(discountedCost);
         }
 
         function clickManual() {
-            state.dissidents += state.click_power;
-            state.total_dissidents += state.click_power;
+            let actualPower = state.click_power * state.click_multiplier;
+            state.dissidents += actualPower;
+            state.total_dissidents += actualPower;
             checkStages();
             updateUI();
             saveGame();
@@ -495,12 +507,30 @@
             }
         }
 
+        // Обработка покупки уникальных доктрин (мультипликаторы, скидки, ускорение, скип времени)
         function buyClickUpgrade(index) {
             let upg = clickUpgrades[index];
             if (state.dissidents >= upg.cost && !upg.purchased) {
                 state.dissidents -= upg.cost;
-                state.click_power += upg.bonus;
                 upg.purchased = true;
+
+                // Применяем эффект в зависимости от типа улучшения
+                if (upg.type === "flat") {
+                    state.click_power += upg.value;
+                } else if (upg.type === "mult") {
+                    state.click_multiplier *= upg.value;
+                } else if (upg.type === "discount") {
+                    state.discount += upg.value;
+                } else if (upg.type === "speed") {
+                    state.game_speed *= upg.value;
+                    recalculateCPS();
+                } else if (upg.type === "time_skip") {
+                    let bonusTimeScore = state.cps * upg.value;
+                    state.dissidents += bonusTimeScore;
+                    state.total_dissidents += bonusTimeScore;
+                    alert(`Машина времени активирована! Получено ресурсов за 2 часа простоя: +${Math.floor(bonusTimeScore)}`);
+                }
+
                 renderClickUpgrades();
                 updateUI();
                 saveGame();
@@ -508,9 +538,10 @@
         }
 
         function recalculateCPS() {
-            let new_cps = 0;
-            upgrades.forEach(upg => { new_cps += upg.count * upg.cps; });
-            state.cps = new_cps + state.event_cps_bonus;
+            let base_cps = 0;
+            upgrades.forEach(upg => { base_cps += upg.count * upg.cps; });
+            // Итоговый CPS с учетом бонусных бонусов от событий и множителя ускорения игры
+            state.cps = (base_cps + state.event_cps_bonus) * state.game_speed;
         }
 
         function updatePassiveIncome() {
@@ -523,8 +554,9 @@
             }
             // Автокликер от VIP заглушки
             if (state.vip_active) {
-                state.dissidents += state.click_power / 10.0;
-                state.total_dissidents += state.click_power / 10.0;
+                let vipPower = (state.click_power * state.click_multiplier) / 10.0;
+                state.dissidents += vipPower;
+                state.total_dissidents += vipPower;
             }
         }
 
@@ -591,7 +623,7 @@
                         <img src="${upg.icon}" class="item-icon" alt="icon">
                         <div class="item-info">
                             <strong>${upg.name} (Ур. <span id="count_${index}" style="display:inline; color:white; font-size:13px;">${upg.count}</span>)</strong>
-                            <span>+${upg.cps} / сек</span>
+                            <span>+${Math.floor(upg.cps * state.game_speed)} / сек</span>
                         </div>
                     </div>
                     <button class="buy-btn" id="btn_${index}" onclick="buyUpgrade(${index})">Купить</button>
@@ -629,8 +661,10 @@
 
         function updateUI() {
             document.getElementById('score').innerText = `Диссидентов поймано: ${Math.floor(state.dissidents)}`;
-            document.getElementById('cps').innerText = `Автоматический отлов: ${state.cps} / сек`;
-            document.getElementById('clickPowerText').innerText = `(Мощь: ${state.click_power})`;
+            document.getElementById('cps').innerText = `Автоматический отлов: ${Math.floor(state.cps)} / сек`;
+            
+            let totalPowerDisplay = state.click_power * state.click_multiplier;
+            document.getElementById('clickPowerText').innerText = `(Мощь: ${totalPowerDisplay})`;
 
             upgrades.forEach((upg, index) => {
                 let cost = getUpgradeCost(upg);

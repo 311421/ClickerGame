@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Big Brother: 1984 Tycoon</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 10px;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        /* Стили баннера */
+        .ad-banner {
+            background-color: #222;
+            border: 1px dashed #444;
+            color: #777;
+            font-size: 11px;
+            padding: 6px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            font-family: Courier, monospace;
+        }
+        
+        /* Стили для монетизации-заглушек */
+        .monetization-bar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .monet-btn {
+            background-color: #332200;
+            border: 1px solid #e6b800;
+            color: #e6b800;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: Courier, monospace;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+        .monet-btn:hover { background-color: #4d3300; }
+        
+        h1 { color: #cc0000; font-weight: bold; margin-bottom: 5px; font-size: 22px; }
+        #stageMessage { font-family: Courier, monospace; font-style: italic; color: #aaaaaa; margin-bottom: 15px; font-size: 13px; padding: 0 10px; }
+        #score { font-size: 22px; font-weight: bold; margin: 10px 0; }
+        #cps { font-size: 14px; color: #777777; margin-bottom: 15px; }
+        
+        .main-btn {
+            background-color: #cc0000;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 350px;
+        }
+        .main-btn:active { background-color: #ff3333; transform: scale(0.98); }
+        
+        .sections-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .section {
+            background-color: #2a2a2a;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .section-title {
+            font-family: Courier, monospace;
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .title-click { color: #0088cc; }
+        .title-passive { color: #cc0000; }
+        
+        .item-card {
+            background-color: #1a2b3c;
+            border: 1px solid #333;
+            padding: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 4px;
+            gap: 10px;
+        }
+        .item-card.passive { background-color: #333; }
+        
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+        }
+        .item-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #444;
+            flex-shrink: 0;
+        }
+        .item-info { font-size: 13px; }
+        .item-info span { display: block; font-size: 11px; color: #aaa; margin-top: 2px; }
+        
+        button.buy-btn {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        button.buy-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        button.buy-btn.active-passive { background-color: #008800; }
+        button.buy-btn.active-click { background-color: #0066aa; }
+
+        /* Кнопка сброса прогресса */
+        .reset-btn {
+            background-color: transparent;
+            color: #555;
+            border: 1px dashed #444;
+            padding: 6px 12px;
+            margin-top: 30px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .reset-btn:hover { color: #cc0000; border-color: #cc0000; }
+
+        /* Общие модальные окна */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;
+        }
+        .modal-content {
+            background-color: #2a2a2a; padding: 20px; border-radius: 8px;
+            width: 100%; max-width: 400px; text-align: center; border: 2px solid #cc0000;
+            box-sizing: border-box;
+        }
+        .modal-title { color: #cc0000; font-size: 18px; font-weight: bold; margin-bottom: 12px; }
+        .modal-text { margin-bottom: 20px; line-height: 1.4; font-size: 13px; }
+        .choice-btn {
+            display: block; width: 100%; padding: 10px; margin-bottom: 8px;
+            background-color: #444; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 12px; border-radius: 4px;
+        }
+        .choice-btn:hover { background-color: #666; }
+        .choice-btn.ad-btn { background-color: #e6b800; color: black; }
+        
+        /* Стили магазина донатных заглушек */
+        .store-item {
+            background: #1f1f1f;
+            border: 1px solid #444;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .store-info { text-align: left; font-size: 12px; }
+        .store-info span { color: #e6b800; display: block; font-size: 10px; margin-top: 3px; }
+        .store-btn {
+            background-color: #e6b800; color: #000; border: none; padding: 6px 12px;
+            font-weight: bold; font-size: 11px; border-radius: 3px; cursor: pointer;
+        }
+        .store-btn:hover { background-color: #ffcc00; }
+        .close-modal-btn {
+            background-color: #444; color: white; border: none; padding: 8px; width: 100%;
+            margin-top: 10px; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Рекламный баннер -->
+    <div class="ad-banner">Здесь могла бы быть ваша реклама. Большой Брат не одобряет ее отстутствие.</div>
+
+    <!-- Панель монетизации (Заглушки) -->
+    <div class="monetization-bar">
+        <button class="monet-btn" onclick="openStoreModal()">🛒 Лавка МинИзобилия</button>
+        <button class="monet-btn" onclick="openAdModal()">📺 Телекракт-Реклама</button>
+    </div>
+
+    <h1>МИНИСТЕРСТВО ЛЮБВИ</h1>
+    <div id="stageMessage">Этап 0: Ручная работа. Старший Брат смотрит на тебя.</div>
+    
+    <div id="score">Диссидентов поймано: 0</div>
+    <div id="cps">Автоматический отлов: 0 / сек</div>
+    
+    <button class="main-btn" onclick="clickManual()">ВЫЯВИТЬ ДИССИДЕНТА<br><span id="clickPowerText">(Мощь: 1)</span></button>
+
+    <div class="sections-container">
+        <!-- Доктрины Партии (Клики) -->
+        <div class="section" id="clickSection" style="display: none;">
+            <div class="section-title title-click">--- ДОКТРИНЫ ПАРТИИ ---</div>
+            <div id="clickUpgradesContainer"></div>
+        </div>
+
+        <!-- Инструменты Контроля (Пассив) -->
+        <div class="section">
+            <div class="section-title title-passive">--- ИНСТРУМЕНТЫ КОНТРОЛЯ ---</div>
+            <div id="upgradesContainer"></div>
+        </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetGame()">Сбросить прогресс</button>
+
+    <!-- Модальное окно событий -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="eventTitle">Срочное сообщение</div>
+            <div class="modal-text" id="eventText">Текст сообщения</div>
+            <div id="eventChoices"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Лавка МинИзобилия (Донат-заглушка) -->
+    <div id="storeModal" class="modal">
+        <div class="modal-content" style="border-color: #e6b800;">
+            <div class="modal-title" style="color: #e6b800;">Лавка МинИзобилия (Донат)</div>
+            <div class="modal-text">Приобретите одобренные Партией привилегии за вещественные кредиты (Заглушка: реальные деньги не списываются).</div>
+            
+            <div class="store-item">
+                <div class="store-info">
+                    <strong>Пакет «Двойной пайек»</strong>
+                    <span>Мгновенно +1 час производства диссидентов</span>
+                </div>
+                <button class="store-btn" onclick="buyMonetization('instant_boost')">199 руб.</button>
+            </div>
+
+            <div class="store-item">
+                <div class="store-info">
+                    <strong>Индульгенция Внутренней Партии</strong>
+                    <span>Удваивает весь текущий CPS навсегда</span>
+                </div>
+                <button class="store-btn" onclick="buyMonetization('double_cps')">499 руб.</button>
+            </div>
+
+            <div class="store-item">
+                <div class="store-info">
+                    <strong>VIP-Статус: «Личный портрет Братства»</strong>
+                    <span>Авто-кликер (10 кликов/сек) на 24 часа</span>
+                </div>
+                <button class="store-btn" onclick="buyMonetization('vip_autoclick')">299 руб.</button>
+            </div>
+
+            <button class="close-modal-btn" onclick="closeStoreModal()">Вернуться к надзору</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Телекракт-Реклама (Rewarded Ad заглушка) -->
+    <div id="adModal" class="modal">
+        <div class="modal-content" style="border-color: #0088cc;">
+            <div class="modal-title" style="color: #0088cc;">Министерство Пропаганды</div>
+            <div class="modal-text" id="adTimerText">Просмотр одобренного социального ролика во имя Старшего Брата...</div>
+            <button class="close-modal-btn" id="adCloseBtn" style="background-color: #0088cc; display: none;" onclick="finishAdReward()">Забрать награду (+30 сек. CPS)</button>
+        </div>
+    </div>
+
+    <script>
+        // Состояние игры
+        let state = {
+            dissidents: 0,
+            total_dissidents: 0,
+            cps: 0,
+            event_cps_bonus: 0,
+            click_power: 1,
+            current_stage: 0,
+            vip_active: false
+        };
+
+        const upgrades = [
+            {id: "informers", name: "Осведомители-соседи", base_cost: 15, cps: 1, count: 0, icon: "assets/1.png"},
+            {id: "cameras", name: "Камеры слежения", base_cost: 100, cps: 5, count: 0, icon: "assets/2.png"},
+            {id: "wiretap", name: "Прослушка телефонов", base_cost: 500, cps: 20, count: 0, icon: "assets/3.png"},
+            {id: "bank", name: "Отслеживание транзакций", base_cost: 2000, cps: 80, count: 0, icon: "assets/4.png"},
+            {id: "thought", name: "Полиция мыслей", base_cost: 10000, cps: 400, count: 0, icon: "assets/5.png"}
+        ];
+
+        const clickUpgrades = [
+            {id: "c_0", name: "Пятиминутки ненависти", desc: "+2 к силе клика", cost: 150, bonus: 2, req_stage: 1, purchased: false, icon: "assets/6.png"},
+            {id: "c_1", name: "Внедрение Новояза", desc: "+5 к силе клика", cost: 1500, bonus: 5, req_stage: 2, purchased: false, icon: "assets/7.png"},
+            {id: "c_2", name: "Курсы Двоемыслия", desc: "+25 к силе клика", cost: 15000, bonus: 25, req_stage: 3, purchased: false, icon: "assets/8.png"},
+            {id: "c_3", name: "Комната 101", desc: "+100 к силе клика", cost: 75000, bonus: 100, req_stage: 4, purchased: false, icon: "assets/9.png"}
+        ];
+
+        const stages = [
+            {threshold: 0, message: "Этап 0: Ручная работа. Старший Брат смотрит на тебя."},
+            {
+                threshold: 100, message: "Этап 1: Распознавание лиц. Партия вами довольна.",
+                event: {
+                    title: "Допрос подозреваемого", text: "Пойман член подполья. Он предлагает сдать сообщников в обмен на улучшенный паек. Ваши действия?",
+                    choices: [
+                        {text: "Отправить в Комнату 101 (+50 дисс.)", reward_dis: 50, reward_cps: 0, reward_click: 0},
+                        {text: "Сделать двойным агентом (+2 авто/сек)", reward_dis: 0, reward_cps: 2, reward_click: 0},
+                        {text: "(Реклама) Ролик МинИзобилия\n(+500 дисс., +15 авто/сек, +5 клик)", reward_dis: 500, reward_cps: 15, reward_click: 5, is_ad: true}
+                    ]
+                }
+            },
+            {
+                threshold: 1000, message: "Этап 2: Эра прозрачности. Личного пространства больше нет.",
+                event: {
+                    title: "Излишки производства", text: "Завод телекранов перевыполнил план на 146%. Куда направить излишки?",
+                    choices: [
+                        {text: "В жилые кварталы пролов (+500 дисс.)", reward_dis: 500, reward_cps: 0, reward_click: 0},
+                        {text: "Кабинеты Внутренней Партии (+20 авто/сек)", reward_dis: 0, reward_cps: 20, reward_click: 0},
+                        {text: "(Реклама) Реклама в сетчатку\n(+5000 дисс., +150 авто/сек)", reward_dis: 5000, reward_cps: 150, reward_click: 0, is_ad: true}
+                    ]
+                }
+            },
+            {
+                threshold: 10000, message: "Этап 3: Тотальная покорность. Свобода — это рабство.",
+                event: {
+                    title: "Словарный бунт", text: "Группа мыслителей тайно пытается переписать 11-е издание словаря Новояза.",
+                    choices: [
+                        {text: "Распылить их всех (+5000 дисс.)", reward_dis: 5000, reward_cps: 0, reward_click: 0},
+                        {text: "Отправить работать в МинПравды (+200 авто/сек)", reward_dis: 0, reward_cps: 200, reward_click: 0},
+                        {text: "(Реклама) Спонсорский ролик Евразии\n(+50000 дисс., +1500 авто/сек, +50 клик)", reward_dis: 50000, reward_cps: 1500, reward_click: 50, is_ad: true}
+                    ]
+                }
+            },
+            {
+                threshold: 50000, message: "Этап 4: Утопия. Диссидентов больше не существует... почти.",
+                event: {
+                    title: "Слухи о Голдстейне", text: "Слухи о Братстве и Эммануэле Голдстейне распространяются слишком быстро.",
+                    choices: [
+                        {text: "Усилить ночные патрули (+20000 дисс.)", reward_dis: 20000, reward_cps: 0, reward_click: 0},
+                        {text: "Создать фальшивую ячейку (+1000 авто/сек)", reward_dis: 0, reward_cps: 1000, reward_click: 0},
+                        {text: "(Реклама) Пауза перед массовой казнью\n(+250000 дисс., +5000 авто/сек, +200 клик)", reward_dis: 250000, reward_cps: 5000, reward_click: 200, is_ad: true}
+                    ]
+                }
+            }
+        ];
+
+        // --- Функции для монетизации (Заглушки) ---
+        function openStoreModal() {
+            document.getElementById('storeModal').style.display = 'flex';
+        }
+        function closeStoreModal() {
+            document.getElementById('storeModal').style.display = 'none';
+        }
+
+        function buyMonetization(type) {
+            if (type === 'instant_boost') {
+                let gain = Math.max(state.cps * 3600, 100);
+                state.dissidents += gain;
+                state.total_dissidents += gain;
+                alert("Пакет успешно оформлен! Министерство зачислило вам эквивалент 1 часа работы.");
+            } else if (type === 'double_cps') {
+                state.event_cps_bonus += Math.max(state.cps, 10);
+                recalculateCPS();
+                alert("Индульгенция получена! Ваша продуктивность увеличена.");
+            } else if (type === 'vip_autoclick') {
+                state.vip_active = true;
+                alert("VIP-статус активирован! Теперь Старший Брат кликает за вас.");
+            }
+            closeStoreModal();
+            updateUI();
+            saveGame();
+        }
+
+        let adTimerInterval = null;
+        function openAdModal() {
+            let modal = document.getElementById('adModal');
+            let textElem = document.getElementById('adTimerText');
+            let btnElem = document.getElementById('adCloseBtn');
+            
+            btnElem.style.display = 'none';
+            modal.style.display = 'flex';
+            
+            let timeLeft = 3;
+            textElem.innerText = `Трансляция министерства завершится через ${timeLeft} сек...`;
+            
+            if(adTimerInterval) clearInterval(adTimerInterval);
+            
+            adTimerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    textElem.innerText = `Трансляция министерства завершится через ${timeLeft} сек...`;
+                } else {
+                    clearInterval(adTimerInterval);
+                    textElem.innerText = "Рекламная пауза окончена. Слава Партии!";
+                    btnElem.style.display = 'block';
+                }
+            }, 1000);
+        }
+
+        function finishAdReward() {
+            let reward = Math.max(state.cps * 30, 50);
+            state.dissidents += reward;
+            state.total_dissidents += reward;
+            document.getElementById('adModal').style.display = 'none';
+            updateUI();
+            saveGame();
+        }
+
+        // --- Работа с localStorage ---
+        function saveGame() {
+            const saveData = {
+                state: state,
+                upgrades: upgrades.map(u => ({ id: u.id, count: u.count })),
+                clickUpgrades: clickUpgrades.map(c => ({ id: c.id, purchased: c.purchased }))
+            };
+            localStorage.setItem('big_brother_save', JSON.stringify(saveData));
+        }
+
+        function loadGame() {
+            let saved = localStorage.getItem('big_brother_save');
+            if (!saved) return;
+            try {
+                let data = JSON.parse(saved);
+                if (data.state) state = Object.assign(state, data.state);
+                
+                if (data.upgrades) {
+                    data.upgrades.forEach(savedUpg => {
+                        let target = upgrades.find(u => u.id === savedUpg.id);
+                        if (target) target.count = savedUpg.count;
+                    });
+                }
+                
+                if (data.clickUpgrades) {
+                    data.clickUpgrades.forEach(savedClick => {
+                        let target = clickUpgrades.find(c => c.id === savedClick.id);
+                        if (target) target.purchased = savedClick.purchased;
+                    });
+                }
+                
+                recalculateCPS();
+                let stageMsg = document.getElementById("stageMessage");
+                if(stages[state.current_stage]) {
+                    stageMsg.innerText = stages[state.current_stage].message;
+                    if(state.current_stage > 0) stageMsg.style.color = "#ff4444";
+                }
+            } catch(e) {
+                console.error("Ошибка загрузки сохранения:", e);
+            }
+        }
+
+        function resetGame() {
+            if (confirm("Вы уверены? Партия узнает об обнулении вашей лояльности!")) {
+                localStorage.removeItem('big_brother_save');
+                location.reload();
+            }
+        }
+
+        function getUpgradeCost(upg) {
+            return Math.floor(upg.base_cost * Math.pow(1.15, upg.count));
+        }
+
+        function clickManual() {
+            state.dissidents += state.click_power;
+            state.total_dissidents += state.click_power;
+            checkStages();
+            updateUI();
+            saveGame();
+        }
+
+        function buyUpgrade(index) {
+            let upg = upgrades[index];
+            let cost = getUpgradeCost(upg);
+            if (state.dissidents >= cost) {
+                state.dissidents -= cost;
+                upg.count++;
+                recalculateCPS();
+                updateUI();
+                saveGame();
+            }
+        }
+
+        function buyClickUpgrade(index) {
+            let upg = clickUpgrades[index];
+            if (state.dissidents >= upg.cost && !upg.purchased) {
+                state.dissidents -= upg.cost;
+                state.click_power += upg.bonus;
+                upg.purchased = true;
+                renderClickUpgrades();
+                updateUI();
+                saveGame();
+            }
+        }
+
+        function recalculateCPS() {
+            let new_cps = 0;
+            upgrades.forEach(upg => { new_cps += upg.count * upg.cps; });
+            state.cps = new_cps + state.event_cps_bonus;
+        }
+
+        function updatePassiveIncome() {
+            if (state.cps > 0) {
+                let added = state.cps / 10.0;
+                state.dissidents += added;
+                state.total_dissidents += added;
+                checkStages();
+                updateUI();
+            }
+            // Автокликер от VIP заглушки
+            if (state.vip_active) {
+                state.dissidents += state.click_power / 10.0;
+                state.total_dissidents += state.click_power / 10.0;
+            }
+        }
+
+        function checkStages() {
+            if (state.current_stage < stages.length - 1) {
+                let next_stage = stages[state.current_stage + 1];
+                if (state.total_dissidents >= next_stage.threshold) {
+                    state.current_stage++;
+                    let stageMsg = document.getElementById("stageMessage");
+                    stageMsg.innerText = stages[state.current_stage].message;
+                    stageMsg.style.color = "#ff4444";
+                    
+                    renderClickUpgrades();
+                    
+                    if (next_stage.event) { triggerEvent(next_stage.event); }
+                    saveGame();
+                }
+            }
+        }
+
+        function triggerEvent(eventData) {
+            document.getElementById('eventTitle').innerText = eventData.title;
+            document.getElementById('eventText').innerText = eventData.text;
+            
+            let choicesContainer = document.getElementById('eventChoices');
+            choicesContainer.innerHTML = '';
+            
+            eventData.choices.forEach((choice) => {
+                let btn = document.createElement('button');
+                btn.className = 'choice-btn ' + (choice.is_ad ? 'ad-btn' : '');
+                btn.innerText = choice.text;
+                btn.onclick = () => resolveEventChoice(choice);
+                choicesContainer.appendChild(btn);
+            });
+            
+            document.getElementById('eventModal').style.display = 'flex';
+        }
+
+        function resolveEventChoice(choice) {
+            if (choice.is_ad) {
+                alert("Министерство Изобилия\n\nПартия благодарит вас за просмотр пропагандистского ролика!\nВаша лояльность щедро вознаграждена.");
+            }
+            
+            state.dissidents += (choice.reward_dis || 0);
+            state.total_dissidents += (choice.reward_dis || 0);
+            state.event_cps_bonus += (choice.reward_cps || 0);
+            state.click_power += (choice.reward_click || 0);
+            
+            recalculateCPS();
+            document.getElementById('eventModal').style.display = 'none';
+            checkStages();
+            updateUI();
+            saveGame();
+        }
+
+        function renderUpgrades() {
+            let container = document.getElementById('upgradesContainer');
+            container.innerHTML = '';
+            upgrades.forEach((upg, index) => {
+                let card = document.createElement('div');
+                card.className = 'item-card passive';
+                card.innerHTML = `
+                    <div class="item-left">
+                        <img src="${upg.icon}" class="item-icon" alt="icon">
+                        <div class="item-info">
+                            <strong>${upg.name} (Ур. <span id="count_${index}" style="display:inline; color:white; font-size:13px;">${upg.count}</span>)</strong>
+                            <span>+${upg.cps} / сек</span>
+                        </div>
+                    </div>
+                    <button class="buy-btn" id="btn_${index}" onclick="buyUpgrade(${index})">Купить</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderClickUpgrades() {
+            let container = document.getElementById('clickUpgradesContainer');
+            container.innerHTML = '';
+            let hasAvailable = false;
+            
+            clickUpgrades.forEach((upg, index) => {
+                if (!upg.purchased && state.current_stage >= upg.req_stage) {
+                    hasAvailable = true;
+                    let card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.innerHTML = `
+                        <div class="item-left">
+                            <img src="${upg.icon}" class="item-icon" alt="icon">
+                            <div class="item-info" style="color: #66ccff;">
+                                <strong>${upg.name}</strong>
+                                <span>${upg.desc}</span>
+                            </div>
+                        </div>
+                        <button class="buy-btn" id="clickBtn_${index}" onclick="buyClickUpgrade(${index})">Внедрить (${upg.cost})</button>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+            
+            document.getElementById('clickSection').style.display = hasAvailable ? 'block' : 'none';
+        }
+
+        function updateUI() {
+            document.getElementById('score').innerText = `Диссидентов поймано: ${Math.floor(state.dissidents)}`;
+            document.getElementById('cps').innerText = `Автоматический отлов: ${state.cps} / сек`;
+            document.getElementById('clickPowerText').innerText = `(Мощь: ${state.click_power})`;
+
+            upgrades.forEach((upg, index) => {
+                let cost = getUpgradeCost(upg);
+                let countSpan = document.getElementById(`count_${index}`);
+                if(countSpan) countSpan.innerText = upg.count;
+                
+                let btn = document.getElementById(`btn_${index}`);
+                if(btn) {
+                    btn.innerText = `Купить (${cost})`;
+                    if (state.dissidents >= cost) {
+                        btn.disabled = false;
+                        btn.classList.add('active-passive');
+                    } else {
+                        btn.disabled = true;
+                        btn.classList.remove('active-passive');
+                    }
+                }
+            });
+
+            clickUpgrades.forEach((upg, index) => {
+                if (!upg.purchased && state.current_stage >= upg.req_stage) {
+                    let btn = document.getElementById(`clickBtn_${index}`);
+                    if(btn) {
+                        if (state.dissidents >= upg.cost) {
+                            btn.disabled = false;
+                            btn.classList.add('active-click');
+                        } else {
+                            btn.disabled = true;
+                            btn.classList.remove('active-click');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Инициализация при запуске
+        loadGame();
+        renderUpgrades();
+        renderClickUpgrades();
+        updateUI();
+        
+        setInterval(saveGame, 10000);
+        setInterval(updatePassiveIncome, 100);
+
+    </script>
+</body>
+</html>

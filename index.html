@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Big Brother: 1984 Tycoon</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Рекламный баннер -->
+    <div class="ad-banner">Здесь могла бы быть ваша реклама. Большой Брат не одобряет ее отсутствие.</div>
+
+    <!-- Панель монетизации (Заглушки) -->
+    <div class="monetization-bar">
+        <button class="monet-btn" onclick="openStoreModal()">🛒 Лавка МинИзобилия</button>
+        <button class="monet-btn" onclick="openAdModal()">📺 Телекракт-Реклама</button>
+    </div>
+
+    <h1>МИНИСТЕРСТВО ЛЮБВИ</h1>
+    <div id="stageMessage">Этап 0: Ручная работа. Старший Брат смотрит на тебя.</div>
+    
+    <div id="score">Диссидентов поймано: 0</div>
+    <div id="cps">Автоматический отлов: 0 / сек</div>
+    
+    <button class="main-btn" onclick="clickManual()">ВЫЯВИТЬ ДИССИДЕНТА<br><span id="clickPowerText">(Мощь: 1)</span></button>
+
+    <div class="sections-container">
+        <!-- Доктрины Партии (Клики и Уникальные улучшение) -->
+        <div class="section" id="clickSection" style="display: none;">
+            <div class="section-title title-click">--- ДОКТРИНЫ ПАРТИИ ---</div>
+            <div id="clickUpgradesContainer"></div>
+        </div>
+
+        <!-- Инструменты Контроля (Пассив) -->
+        <div class="section">
+            <div class="section-title title-passive">--- ИНСТРУМЕНТЫ КОНТРОЛЯ ---</div>
+            <div id="upgradesContainer"></div>
+        </div>
+    </div>
+
+    <button class="reset-btn" onclick="resetGame()">Сбросить прогресс</button>
+
+    <!-- Модальное окно событий -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="eventTitle">Срочное сообщение</div>
+            <div class="modal-text" id="eventText">Текст сообщения</div>
+            <div id="eventChoices"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Лавка МинИзобилия (Донат-заглушка) -->
+    <div id="storeModal" class="modal">
+        <div class="modal-content" style="border-color: #e6b800;">
+            <div class="modal-title" style="color: #e6b800;">Лавка МинИзобилия (Донат)</div>
+            <div class="modal-text">Приобретите одобренные Партией привилегии за вещественные кредиты (Заглушка: реальные деньги не списываются).</div>
+            
+            <div class="store-item">
+                <div class="store-info">
+                    <strong>Пакет «Двойной пайек»</strong>
+                    <span>Мгновенно +1 час производства диссидентов</span>
+                </div>
+                <button class="store-btn" onclick="buyMonetization('instant_boost')">199 руб.</button>
+            </div>
+
+            <div class="store-item">
+                <div class="store-info">
+                    <strong>Индульгенция Внутренней Партии</strong>
+                    <span>Удваивает весь текущий CPS навсегда</span>
+                </div>
+                <button class="store-btn" onclick="buyMonetization('double_cps')">499 руб.</button>
+            </div>
+
+            <div class="store-item">
+                <div class="store-info">
+                    <strong>VIP-Статус: «Личный портрет Братства»</strong>
+                    <span>Авто-кликер (10 кликов/сек) на 24 часа</span>
+                </div>
+                <button class="store-btn" onclick="buyMonetization('vip_autoclick')">299 руб.</button>
+            </div>
+
+            <button class="close-modal-btn" onclick="closeStoreModal()">Вернуться к надзору</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Телекракт-Реклама (Rewarded Ad заглушка) -->
+    <div id="adModal" class="modal">
+        <div class="modal-content" style="border-color: #0088cc;">
+            <div class="modal-title" style="color: #0088cc;">Министерство Пропаганды</div>
+            <div class="modal-text" id="adTimerText">Просмотр одобренного социального ролика во имя Старшего Брата...</div>
+            <button class="close-modal-btn" id="adCloseBtn" style="background-color: #0088cc; display: none;" onclick="finishAdReward()">Забрать награду (+30 сек. CPS)</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
